@@ -32,6 +32,7 @@ This service provides REST APIs to:
 
 ```text
 src
+├── client
 ├── controller
 ├── service
 ├── repository
