@@ -10,53 +10,66 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/flags")
 public class FlagController {
 
     private final FlagService featureFlagService;
-
     private final EvaluationService evaluationService;
 
-    @PostMapping("/flags")
-    public FlagResponse create(
+    @PostMapping
+    public ResponseEntity<FlagResponse> create(
             @RequestHeader("X-Tenant-ID") String tenantId,
-            @RequestBody @Valid FlagRequest request) {
+            @Valid @RequestBody FlagRequest request) {
 
-        return featureFlagService.create(tenantId, request);
+        FlagResponse response = featureFlagService.create(tenantId, request);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(response);
     }
 
-    @GetMapping("/flags")
-    public List<FlagResponse> getAll(
+    @GetMapping
+    public ResponseEntity<List<FlagResponse>> getAll(
             @RequestHeader("X-Tenant-ID") String tenantId) {
 
-        return featureFlagService.getAll(tenantId);
+        return ResponseEntity.ok(
+                featureFlagService.getAll(tenantId)
+        );
     }
 
-    @PutMapping("/flags/{id}")
-    public FlagResponse update(
+    @PutMapping("/{id}")
+    public ResponseEntity<FlagResponse> update(
             @PathVariable Long id,
             @RequestHeader("X-Tenant-ID") String tenantId,
-            @RequestBody FlagRequest request) {
+            @Valid @RequestBody FlagRequest request) {
 
-        return featureFlagService.update(id, tenantId, request);
+        FlagResponse response =
+                featureFlagService.update(id, tenantId, request);
+        return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/flags/{id}")
-    public void delete(
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(
             @PathVariable Long id,
             @RequestHeader("X-Tenant-ID") String tenantId) {
 
         featureFlagService.delete(id, tenantId);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/eval")
-    public EvaluationResponse evaluate(
+    public ResponseEntity<EvaluationResponse> evaluate(
             @RequestHeader("X-Tenant-ID") String tenantId,
             @RequestParam String flag,
             @RequestParam String user) {
 
-        return evaluationService.evaluate(tenantId, flag, user);
+        EvaluationResponse response = evaluationService.evaluate(tenantId, flag, user);
+
+        return ResponseEntity.ok(response);
     }
 }
