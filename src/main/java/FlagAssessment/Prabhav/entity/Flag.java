@@ -1,24 +1,41 @@
 package FlagAssessment.Prabhav.entity;
 
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.*;
 
-@lombok
+@Entity
+@Table(
+        name = "feature_flags",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        columnNames = {
+                                "tenant_id",
+                                "name"
+                        }
+                )
+        }
+)
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Flag {
-    @NotBlank
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name="tenant_id",nullable=false)
+    private String tenantId;
+
+    @Column(nullable=false)
     private String name;
 
-    @NotNull
-    private FlagState state;        // ON, OFF, DEFAULT
+    @Column(nullable=false)
+    private boolean enabled;
 
+    @Column(nullable=false)
     private boolean defaultValue;   // used when state == DEFAULT
-
-    // Constructors, getters, setters...
-    public Flag() {}
-
-    public Flag(String name, FlagState state, boolean defaultValue) {
-        this.name = name;
-        this.state = state;
-        this.defaultValue = defaultValue;
-    }
 }
