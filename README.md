@@ -238,7 +238,7 @@ X-Tenant-ID: tenant1
 ## Clone the Repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/PrabhavGupta5/PaytmFlagAssessment.git
 cd feature-flag-service
 ```
 
