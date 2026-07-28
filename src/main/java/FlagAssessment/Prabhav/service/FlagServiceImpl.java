@@ -1,60 +1,81 @@
 package FlagAssessment.Prabhav.service;
 
+import FlagAssessment.Prabhav.DTO.FlagRequest;
+import FlagAssessment.Prabhav.DTO.FlagResponse;
+import FlagAssessment.Prabhav.Exception.DuplicateFlagException;
+import FlagAssessment.Prabhav.Exception.ResourceNotFoundException;
 import FlagAssessment.Prabhav.entity.Flag;
 import FlagAssessment.Prabhav.repository.FlagRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class FlagServiceImpl implements FlagService {
 
     private final FlagRepository repository;
 
-    public FlagServiceImpl(FlagRepository repository) {
-        this.repository = repository;
-    }
-
     @Override
-    public Flag createOrUpdate(String projectId, Flag flag) {
-        repository.save(projectId, flag);
-        return flag;
-    }
+    public FlagResponse create(String tenantId, FlagRequest request) {
 
-
-    @Override
-    public Flag getFlag(String projectId, String flagName) {
-        return repository.findByName(projectId, flagName)
-                .orElseThrow(() -> new FlagNotFoundException(projectId, flagName));
-    }
-
-    @Override
-    public List<Flag> getAllFlags(String projectId) {
-        if (!repository.projectExists(projectId)) {
-            throw new ProjectNotFoundException(projectId);
+        if (repository.existsByTenantIdAndName(tenantId, request.getName())) {
+            throw new DuplicateFlagException("Flag already exists");
         }
-        return repository.findAllByProject(projectId);
+
+        Flag flag = Flag.builder()
+                .tenantId(tenantId)
+                .name(request.getName())
+                .enabled(request.isEnabled())
+                .defaultValue(request.isDefaultValue())
+                .build();
+
+        return map(repository.save(flag));
     }
 
     @Override
-    public void deleteFlag(String projectId, String flagName) {
-        boolean deleted = repository.deleteByName(projectId, flagName);
-        if (!deleted) {
-            throw new FlagNotFoundException(projectId, flagName);
+    public List<FlagResponse> getAll(String tenantId) {
+
+        return repository.findAllByTenantId(tenantId)
+                .stream()
+                .map(this::map)
+                .toList();
+    }
+
+    @Override
+    public FlagResponse update(Long id,
+                               String tenantId,
+                               FlagRequest request) {
+
+        Flag flag = repository.findByIdAndTenantId(id, tenantId)
+                .orElseThrow(() -> new ResourceNotFoundException("Flag not found"));
+
+        if (!flag.getName().equals(request.getName())
+                && repository.existsByTenantIdAndName(tenantId, request.getName())) {
+            throw new DuplicateFlagException("Flag already exists");
         }
+        flag.setEnabled(request.isEnabled());
+        flag.setDefaultValue(request.isDefaultValue());
+
+        return map(repository.save(flag));
     }
 
     @Override
-    public boolean evaluate(String projectId, String flagName, String userId) {
-        Flag flag = repository.findByName(projectId, flagName)
-                .orElseThrow(() -> new FlagNotFoundException(projectId, flagName));
+    public void delete(Long id, String tenantId) {
+        Flag flag = repository.findByIdAndTenantId(id, tenantId)
+                .orElseThrow(() -> new ResourceNotFoundException("Flag not found"));
 
-        // For now, we ignore 'userId' – we treat it as stable for any user.
-        // In a real system you would add targeting rules (percentage, user lists, etc.)
-        return switch (flag.getState()) {
-            case ON -> true;
-            case OFF -> false;
-            case DEFAULT -> flag.isDefaultValue();
-        };
+        repository.delete(flag);
+    }
+
+    private FlagResponse map(Flag flag) {
+
+        return FlagResponse.builder()
+                .id(flag.getId())
+                .name(flag.getName())
+                .enabled(flag.isEnabled())
+                .defaultValue(flag.isDefaultValue())
+                .build();
     }
 }

@@ -8,8 +8,6 @@ import lombok.Data;
 public class EvaluationResponse {
 
     private String flag;
-
     private String user;
-
     private boolean enabled;
 }

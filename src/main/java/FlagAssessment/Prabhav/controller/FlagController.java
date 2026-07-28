@@ -1,45 +1,62 @@
 package FlagAssessment.Prabhav.controller;
 
-import FlagAssessment.Prabhav.entity.Flag;
+import FlagAssessment.Prabhav.DTO.EvaluationResponse;
+import FlagAssessment.Prabhav.DTO.FlagRequest;
+import FlagAssessment.Prabhav.DTO.FlagResponse;
+import FlagAssessment.Prabhav.service.EvaluationService;
 import FlagAssessment.Prabhav.service.FlagService;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/projects/{projectId}/flags")
+@RequiredArgsConstructor
 public class FlagController {
 
-    private final FlagService flagService;
+    private final FlagService featureFlagService;
 
-    public FlagController(FlagService flagService) {
-        this.flagService = flagService;
+    private final EvaluationService evaluationService;
+
+    @PostMapping("/flags")
+    public FlagResponse create(
+            @RequestHeader("X-Tenant-ID") String tenantId,
+            @RequestBody @Valid FlagRequest request) {
+
+        return featureFlagService.create(tenantId, request);
     }
 
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public Flag createOrUpdateFlag(@PathVariable String projectId,
-                                   @Valid @RequestBody Flag flag) {
-        return flagService.createOrUpdate(projectId, flag);
+    @GetMapping("/flags")
+    public List<FlagResponse> getAll(
+            @RequestHeader("X-Tenant-ID") String tenantId) {
+
+        return featureFlagService.getAll(tenantId);
     }
 
-    @GetMapping("/{flagName}")
-    public Flag getFlag(@PathVariable String projectId,
-                        @PathVariable String flagName) {
-        return flagService.getFlag(projectId, flagName);
+    @PutMapping("/flags/{id}")
+    public FlagResponse update(
+            @PathVariable Long id,
+            @RequestHeader("X-Tenant-ID") String tenantId,
+            @RequestBody FlagRequest request) {
+
+        return featureFlagService.update(id, tenantId, request);
     }
 
-    @GetMapping
-    public List<Flag> getAllFlags(@PathVariable String projectId) {
-        return flagService.getAllFlags(projectId);
+    @DeleteMapping("/flags/{id}")
+    public void delete(
+            @PathVariable Long id,
+            @RequestHeader("X-Tenant-ID") String tenantId) {
+
+        featureFlagService.delete(id, tenantId);
     }
 
-    @DeleteMapping("/{flagName}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteFlag(@PathVariable String projectId,
-                           @PathVariable String flagName) {
-        flagService.deleteFlag(projectId, flagName);
+    @GetMapping("/eval")
+    public EvaluationResponse evaluate(
+            @RequestHeader("X-Tenant-ID") String tenantId,
+            @RequestParam String flag,
+            @RequestParam String user) {
+
+        return evaluationService.evaluate(tenantId, flag, user);
     }
 }
