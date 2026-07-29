@@ -5,6 +5,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+import java.util.HashSet;
+import java.util.Set;
+
 @Entity
 @Table(
         name = "feature_flags",
@@ -33,9 +36,31 @@ public class Flag {
     @Column(nullable=false)
     private String name;
 
-    @Column(nullable=false)
+    @Column(nullable = false)
     private boolean enabled;
 
-    @Column(nullable=false)
-    private boolean defaultValue;   // used when state == DEFAULT
+    /*
+     * 0-100
+     * Percentage of users eligible
+     */
+    @Column(nullable = false)
+    private Integer rolloutPercentage;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+            name = "targeted_users",
+            joinColumns = @JoinColumn(name = "flag_id")
+    )
+    @Column(name = "username")
+    @Builder.Default
+    private Set<String> targetedUsers = new HashSet<>();
+
+    @Column(nullable = false)
+    private boolean defaultValue;
+
+    /*
+     * Optimistic Locking
+     */
+    @Version
+    private Long version;   // used when state == DEFAULT
 }
