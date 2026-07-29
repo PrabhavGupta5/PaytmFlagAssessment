@@ -27,6 +27,9 @@ public class SimpleEvaluationStrategy implements EvaluationStrategy {
          */
         int bucket = Math.abs(user.hashCode()) % 100;
 
+        System.out.println("User: " + user);
+        System.out.println("Bucket: " + bucket);
+
         return bucket < featureFlag.getRolloutPercentage();
     }
 }

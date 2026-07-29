@@ -7,12 +7,9 @@ import org.springframework.web.client.RestClient;
 @Component
 public class FlagClient {
 
-    private final RestClient restClient =
-            RestClient.create("http://localhost:8080");
+    private final RestClient restClient = RestClient.create("http://localhost:8080");
 
-    public boolean isFeatureEnabled(String tenantId,
-                                    String flag,
-                                    String user) {
+    public boolean isFeatureEnabled(String tenantId, String flag, String user) {
 
         EvaluationResponse response = restClient.get()
                 .uri(uriBuilder -> uriBuilder

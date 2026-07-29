@@ -12,6 +12,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
@@ -29,24 +30,28 @@ class EvaluationServiceTest {
     private EvaluationServiceImpl service;
 
     @Test
-    void shouldEvaluateEnabledFlag(){
+    void shouldEvaluateEnabledFlagForTargetedUser() {
 
-        service = new EvaluationServiceImpl(repository,strategy);
+        service = new EvaluationServiceImpl(repository, strategy);
 
         Flag flag = Flag.builder()
                 .tenantId("tenant1")
                 .name("NEW_UI")
                 .enabled(true)
+                .rolloutPercentage(25)
+                .targetedUsers(Set.of("123"))
                 .defaultValue(false)
                 .build();
 
-        when(repository.findByTenantIdAndName("tenant1","NEW_UI"))
+        when(repository.findByTenantIdAndName("tenant1", "NEW_UI"))
                 .thenReturn(Optional.of(flag));
 
         assertTrue(
-                service.evaluate("tenant1",
+                service.evaluate(
+                        "tenant1",
                         "NEW_UI",
-                        "123").isEnabled()
+                        "123"
+                ).isEnabled()
         );
     }
 

@@ -2,6 +2,7 @@ package FlagAssessment.Prabhav.DTO;
 
 import lombok.Builder;
 import lombok.Data;
+import FlagAssessment.Prabhav.entity.Flag;
 
 import java.util.Set;
 
@@ -22,4 +23,17 @@ public class FlagResponse {
     private Set<String> targetedUsers;
 
     private Long version;
+
+    public static FlagResponse fromEntity(Flag flag) {
+        return FlagResponse.builder()
+                .id(flag.getId())
+                .name(flag.getName())
+                .enabled(flag.isEnabled())
+                .rolloutPercentage(flag.getRolloutPercentage())
+                .targetedUsers(flag.getTargetedUsers())
+                .defaultValue(flag.isDefaultValue())
+                .version(flag.getVersion())
+                .build();
+
+    }
 }

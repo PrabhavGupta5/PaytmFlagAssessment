@@ -18,14 +18,10 @@ public class EvaluationServiceImpl implements EvaluationService {
     private final EvaluationStrategy strategy;
 
     @Override
-    public EvaluationResponse evaluate(String tenantId,
-                                       String flag,
-                                       String user) {
+    public EvaluationResponse evaluate(String tenantId, String flag, String user) {
 
-        Flag featureFlag =
-                repository.findByTenantIdAndName(tenantId, flag)
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException("Flag not found"));
+        Flag featureFlag = repository.findByTenantIdAndName(tenantId, flag)
+                        .orElseThrow(() -> new ResourceNotFoundException("Flag not found"));
 
         boolean enabled = strategy.evaluate(featureFlag, user);
 

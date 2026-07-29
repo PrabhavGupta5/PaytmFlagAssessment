@@ -25,19 +25,9 @@ public class FlagServiceImpl implements FlagService {
             throw new DuplicateFlagException("Flag already exists");
         }
 
-        Flag flag = Flag.builder()
-                .tenantId(tenantId)
-                .name(request.getName())
-                .enabled(request.isEnabled())
-                .rolloutPercentage(request.getRolloutPercentage())
-                .targetedUsers(
-                        request.getTargetedUsers() == null ?
-                                new HashSet<>() :
-                                request.getTargetedUsers())
-                .defaultValue(request.isDefaultValue())
-                .build();
+        Flag saved = repository.save(request.toEntity(tenantId));
 
-        return map(repository.save(flag));
+        return  FlagResponse.fromEntity(saved);
     }
 
     @Override
@@ -45,14 +35,12 @@ public class FlagServiceImpl implements FlagService {
 
         return repository.findAllByTenantId(tenantId)
                 .stream()
-                .map(this::map)
+                .map(FlagResponse::fromEntity)
                 .toList();
     }
 
     @Override
-    public FlagResponse update(Long id,
-                               String tenantId,
-                               FlagRequest request) {
+    public FlagResponse update(Long id, String tenantId, FlagRequest request) {
 
         Flag flag = repository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new ResourceNotFoundException("Flag not found"));
@@ -61,10 +49,19 @@ public class FlagServiceImpl implements FlagService {
                 && repository.existsByTenantIdAndName(tenantId, request.getName())) {
             throw new DuplicateFlagException("Flag already exists");
         }
-        flag.setRolloutPercentage(request.getRolloutPercentage());
-        flag.setTargetedUsers(request.getTargetedUsers());
 
-        return map(repository.save(flag));
+        flag.setName(request.getName());
+        flag.setEnabled(request.isEnabled());
+        flag.setRolloutPercentage(request.getRolloutPercentage());
+        flag.setTargetedUsers(
+                request.getTargetedUsers() == null
+                        ? new HashSet<>()
+                        : request.getTargetedUsers()
+        );
+        flag.setDefaultValue(request.isDefaultValue());
+        flag.setVersion(request.getVersion());
+
+        return FlagResponse.fromEntity(repository.save(flag));
     }
 
     @Override
@@ -75,16 +72,4 @@ public class FlagServiceImpl implements FlagService {
         repository.delete(flag);
     }
 
-    private FlagResponse map(Flag flag) {
-
-        return FlagResponse.builder()
-                .id(flag.getId())
-                .name(flag.getName())
-                .enabled(flag.isEnabled())
-                .rolloutPercentage(flag.getRolloutPercentage())
-                .targetedUsers(flag.getTargetedUsers())
-                .defaultValue(flag.isDefaultValue())
-                .version(flag.getVersion())
-                .build();
-    }
 }
