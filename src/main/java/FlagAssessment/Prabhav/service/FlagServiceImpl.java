@@ -9,6 +9,7 @@ import FlagAssessment.Prabhav.repository.FlagRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
 
 @Service
@@ -28,6 +29,11 @@ public class FlagServiceImpl implements FlagService {
                 .tenantId(tenantId)
                 .name(request.getName())
                 .enabled(request.isEnabled())
+                .rolloutPercentage(request.getRolloutPercentage())
+                .targetedUsers(
+                        request.getTargetedUsers() == null ?
+                                new HashSet<>() :
+                                request.getTargetedUsers())
                 .defaultValue(request.isDefaultValue())
                 .build();
 
@@ -55,8 +61,8 @@ public class FlagServiceImpl implements FlagService {
                 && repository.existsByTenantIdAndName(tenantId, request.getName())) {
             throw new DuplicateFlagException("Flag already exists");
         }
-        flag.setEnabled(request.isEnabled());
-        flag.setDefaultValue(request.isDefaultValue());
+        flag.setRolloutPercentage(request.getRolloutPercentage());
+        flag.setTargetedUsers(request.getTargetedUsers());
 
         return map(repository.save(flag));
     }
@@ -75,7 +81,10 @@ public class FlagServiceImpl implements FlagService {
                 .id(flag.getId())
                 .name(flag.getName())
                 .enabled(flag.isEnabled())
+                .rolloutPercentage(flag.getRolloutPercentage())
+                .targetedUsers(flag.getTargetedUsers())
                 .defaultValue(flag.isDefaultValue())
+                .version(flag.getVersion())
                 .build();
     }
 }

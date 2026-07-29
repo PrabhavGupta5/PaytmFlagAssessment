@@ -2,6 +2,7 @@ package FlagAssessment.Prabhav.Exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -31,6 +32,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .badRequest()
                 .body("Validation Failed");
+    }
+
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<String> handleConflict(ObjectOptimisticLockingFailureException ex){
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body("Feature flag was modified by another user. Please refresh and retry.");
     }
 
 }

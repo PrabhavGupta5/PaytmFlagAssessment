@@ -8,7 +8,25 @@ public class SimpleEvaluationStrategy implements EvaluationStrategy {
 
     @Override
     public boolean evaluate(Flag featureFlag, String user) {
+        /*
+         * Flag globally disabled
+         */
+        if (!featureFlag.isEnabled()) {
+            return featureFlag.isDefaultValue();
+        }
 
-        return featureFlag.isEnabled();
+        /*
+         * Explicit targeting
+         */
+        if (featureFlag.getTargetedUsers() != null && featureFlag.getTargetedUsers().contains(user)) {
+            return true;
+        }
+
+        /*
+         * Stable percentage rollout
+         */
+        int bucket = Math.abs(user.hashCode()) % 100;
+
+        return bucket < featureFlag.getRolloutPercentage();
     }
 }
